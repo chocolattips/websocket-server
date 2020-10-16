@@ -2,16 +2,19 @@
   "name": "web-socket-server",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/main.js",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "tsc && node ./dist/main.js",
-    "compile": "tsc",
-    "generate": "webpack --config webpack.config.js",
+    "start": "node ./dist/index.js",
+    "build": "webpack --config webpack.config.js",
     "test": "jest"
   },
   "keywords": [],
   "author": "",
   "license": "",
+  "private": true,
+  "files": [
+    "dist"
+  ],
   "dependencies": {
     "websocket": "^1.0.32"
   },

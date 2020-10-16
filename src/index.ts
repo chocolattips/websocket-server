@@ -73,10 +73,12 @@ export default function (httpServer: Http.Server) {
         c.send(dataString);
       }
     }
+    return self;
   }
 
   function close() {
     wss.closeAllConnections();
+    return self;
   }
 
   function addOnRequest(handler: OnRequestType) {
