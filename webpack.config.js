@@ -6,6 +6,7 @@ module.exports = {
   output: {
     filename: "index.js",
     path: `${__dirname}/dist`,
+    libraryTarget: "commonjs2",
   },
   module: {
     rules: [
