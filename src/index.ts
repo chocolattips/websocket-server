@@ -5,7 +5,9 @@ export type OnRequestType = (id: number) => void;
 export type OnMessageType = (id: number, message: string) => void;
 export type OnCloseType = (id: number) => void;
 
-export default function (httpServer: Http.Server) {
+type DefaultType = ReturnType<typeof _default>;
+
+export default function _default(httpServer: Http.Server) {
   let __id = 1;
   const state = {
     connections: {} as { [key: number]: WebSocket.connection },
@@ -61,12 +63,12 @@ export default function (httpServer: Http.Server) {
   }
 
   type OptionType = typeof state.option;
-  function setOption(option: OptionType) {
+  function setOption(option: OptionType): DefaultType {
     state.option = { ...state.option, ...option };
     return self;
   }
 
-  function send(dataString: string) {
+  function send(dataString: string): DefaultType {
     for (const id in state.connections) {
       const c = state.connections[id];
       if (c) {
@@ -76,27 +78,27 @@ export default function (httpServer: Http.Server) {
     return self;
   }
 
-  function close() {
+  function close(): DefaultType {
     wss.closeAllConnections();
     return self;
   }
 
-  function addOnRequest(handler: OnRequestType) {
+  function addOnRequest(handler: OnRequestType): DefaultType {
     state.eventHandlers.request.push(handler);
     return self;
   }
 
-  function addOnMessage(handler: OnMessageType) {
+  function addOnMessage(handler: OnMessageType): DefaultType {
     state.eventHandlers.message.push(handler);
     return self;
   }
 
-  function addOnClose(handler: OnCloseType) {
+  function addOnClose(handler: OnCloseType): DefaultType {
     state.eventHandlers.close.push(handler);
     return self;
   }
 
-  function removeOn(eventName: string, handler: any) {
+  function removeOn(eventName: string, handler: any): DefaultType {
     const ls = state.eventHandlers[eventName];
     if (ls) {
       const index = ls.findIndex((x) => x == handler);
