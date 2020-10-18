@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node ./dist/index.js",
     "build": "webpack --config webpack.config.js",
+    "package": "npm pack && tar -xvf web-socket-server*.tgz",
     "test": "jest"
   },
   "keywords": [],
