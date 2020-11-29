@@ -79,6 +79,16 @@ describe("WebSocketServer", () => {
     }
   });
 
+  describe("empty http server", () => {
+    it("", () => {
+      const state = defaultState();
+      expect(state.httpServer).toBeNull();
+      useWebSocketServer(undefined, state);
+      expect(state.httpServer).not.toBeNull();
+      state.httpServer?.close();
+    });
+  });
+
   describe("addOnRequest", () => {
     it("", () => {
       const ls = _state.eventHandlers.request;

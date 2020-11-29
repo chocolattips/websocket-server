@@ -25,6 +25,7 @@ export function defaultState() {
       message: [] as OnMessageType[],
       close: [] as OnCloseType[],
     },
+    httpServer: null as Http.Server | null,
   };
 }
 type DefaultStateType = ReturnType<typeof defaultState>;
@@ -32,10 +33,19 @@ type DefaultStateType = ReturnType<typeof defaultState>;
 type DefaultType = ReturnType<typeof _default>;
 
 export default function _default(
-  httpServer: Http.Server,
+  httpServerOrPort: Http.Server | number = 3000,
   state?: DefaultStateType
 ) {
+  let httpServer: Http.Server;
+  if (typeof httpServerOrPort == "number") {
+    httpServer = Http.createServer();
+    httpServer.listen(httpServerOrPort);
+  } else {
+    httpServer = httpServerOrPort;
+  }
+
   const _state = state || defaultState();
+  _state.httpServer = httpServer;
 
   const self = {
     send,
