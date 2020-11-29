@@ -4,9 +4,8 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "start": "node ./dist/index.js",
     "build": "webpack --config webpack.config.js",
-    "package": "npm pack && tar -xvf web-socket-server*.tgz",
+    "package": "npm run build && npm pack && tar -xvf web-socket-server*.tgz",
     "test": "jest"
   },
   "keywords": [],
