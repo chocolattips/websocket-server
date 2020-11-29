@@ -1,76 +1,85 @@
 import Http from "http";
 import WebSocket from "websocket";
 
-export type OnRequestType = (id: number) => void;
-export type OnMessageType = (id: number, message: string) => void;
-export type OnCloseType = (id: number) => void;
+export interface IOnRequest {
+  id: number;
+}
+export interface IOnMessage {
+  id: number;
+  message: string;
+}
+export interface IOnClose {
+  id: number;
+}
 
-type DefaultType = ReturnType<typeof _default>;
+export type OnRequestType = (param: IOnRequest) => void;
+export type OnMessageType = (param: IOnMessage) => void;
+export type OnCloseType = (param: IOnClose) => void;
 
-export default function _default(httpServer: Http.Server) {
-  let __id = 1;
-  const state = {
+export function defaultState() {
+  return {
+    id: 1,
     connections: {} as { [key: number]: WebSocket.connection },
     eventHandlers: {
       request: [] as OnRequestType[],
       message: [] as OnMessageType[],
       close: [] as OnCloseType[],
-    } as { [key: string]: any[] },
-    option: {
-      logEnabled: true,
     },
+  };
+}
+type DefaultStateType = ReturnType<typeof defaultState>;
+
+type DefaultType = ReturnType<typeof _default>;
+
+export default function _default(
+  httpServer: Http.Server,
+  state?: DefaultStateType
+) {
+  const _state = state || defaultState();
+
+  const self = {
+    send,
+    close,
+    addOnRequest,
+    addOnMessage,
+    addOnClose,
+    removeOnRequest,
+    removeOnMessage,
+    removeOnClose,
   };
 
   const wss = new WebSocket.server({ httpServer });
-  wss.on("request", (request) => _onRequest(__id++, request));
+  wss.on("request", (request) => _onRequest(_state.id++, request));
 
   function _onRequest(id: number, request: WebSocket.request) {
     const connection = request.accept(undefined, request.origin);
-    state.connections[id] = connection;
-    _log(`+ request : ${id}`);
+    _state.connections[id] = connection;
 
     connection.on("message", (message) => _onMessage(id, message));
     connection.on("close", (_) => _onClose(id, _));
 
-    state.eventHandlers.request.forEach((h) => h(id));
+    const param = { id };
+    _state.eventHandlers.request.forEach((h) => h(param));
   }
 
   function _onMessage(id: number, message: WebSocket.IMessage) {
-    _log(`---- message @${id} : ${message.utf8Data}`);
-    state.eventHandlers.message.forEach((h) => h(id, message.utf8Data || ""));
+    const param = { id, message: message.utf8Data || "" };
+    _state.eventHandlers.message.forEach((h) => h(param));
   }
 
   function _onClose(id: number, _: number) {
-    if (!state.connections[id]) {
+    if (!_state.connections[id]) {
       return;
     }
-    _log(`- close : ${id}`);
-    delete state.connections[id];
+    delete _state.connections[id];
 
-    state.eventHandlers.close.forEach((h) => h(id));
-  }
-
-  function _log(message: any) {
-    if (state.option.logEnabled) {
-      console.log(message);
-    }
-  }
-
-  function _warn(message: any) {
-    if (state.option.logEnabled) {
-      console.warn(message);
-    }
-  }
-
-  type OptionType = typeof state.option;
-  function setOption(option: OptionType): DefaultType {
-    state.option = { ...state.option, ...option };
-    return self;
+    const param = { id };
+    _state.eventHandlers.close.forEach((h) => h(param));
   }
 
   function send(dataString: string): DefaultType {
-    for (const id in state.connections) {
-      const c = state.connections[id];
+    for (const id in _state.connections) {
+      const c = _state.connections[id];
       if (c) {
         c.send(dataString);
       }
@@ -84,46 +93,43 @@ export default function _default(httpServer: Http.Server) {
   }
 
   function addOnRequest(handler: OnRequestType): DefaultType {
-    state.eventHandlers.request.push(handler);
+    _state.eventHandlers.request.push(handler);
     return self;
   }
 
   function addOnMessage(handler: OnMessageType): DefaultType {
-    state.eventHandlers.message.push(handler);
+    _state.eventHandlers.message.push(handler);
     return self;
   }
 
   function addOnClose(handler: OnCloseType): DefaultType {
-    state.eventHandlers.close.push(handler);
+    _state.eventHandlers.close.push(handler);
     return self;
   }
 
-  function removeOn(eventName: string, handler: any): DefaultType {
-    const ls = state.eventHandlers[eventName];
+  function removeOnRequest(handler: OnRequestType): DefaultType {
+    _removeOn(_state.eventHandlers.request, handler);
+    return self;
+  }
+
+  function removeOnMessage(handler: OnMessageType): DefaultType {
+    _removeOn(_state.eventHandlers.message, handler);
+    return self;
+  }
+
+  function removeOnClose(handler: OnCloseType): DefaultType {
+    _removeOn(_state.eventHandlers.close, handler);
+    return self;
+  }
+
+  function _removeOn(ls: any[], handler: any) {
     if (ls) {
       const index = ls.findIndex((x) => x == handler);
       if (index != -1) {
         ls.splice(index, 1);
       }
     }
-
-    return self;
   }
-
-  const _ = {
-    state,
-  };
-
-  const self = {
-    _,
-    setOption,
-    send,
-    close,
-    addOnRequest,
-    addOnMessage,
-    addOnClose,
-    removeOn,
-  };
 
   return self;
 }

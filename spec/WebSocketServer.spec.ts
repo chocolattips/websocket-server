@@ -1,15 +1,22 @@
-import useWebSocketServer from "../src/index";
+import useWebSocketServer, {
+  defaultState,
+  IOnRequest,
+  IOnMessage,
+  IOnClose,
+  OnMessageType,
+} from "../src";
 import Http from "http";
 import WebSocket from "websocket";
 
 describe("WebSocketServer", () => {
   let _httpServer: Http.Server;
+  let _state: ReturnType<typeof defaultState>;
   let _webSocketServer: ReturnType<typeof useWebSocketServer>;
 
   beforeEach(() => {
     _httpServer = Http.createServer();
-    _webSocketServer = useWebSocketServer(_httpServer);
-    _webSocketServer.setOption({ logEnabled: false });
+    _state = defaultState();
+    _webSocketServer = useWebSocketServer(_httpServer, _state);
   });
 
   describe("request-message-close", () => {
@@ -43,8 +50,8 @@ describe("WebSocketServer", () => {
             resolve(connection);
           }
         });
-        _webSocketServer.addOnRequest((_id) => {
-          id = _id;
+        _webSocketServer.addOnRequest((param) => {
+          id = param.id;
           if (connection) {
             resolve(connection);
           }
@@ -54,11 +61,11 @@ describe("WebSocketServer", () => {
 
     function messageAsync(connection: WebSocket.connection) {
       return new Promise((resolve) => {
-        _webSocketServer.addOnMessage((id, message) => {
+        _webSocketServer.addOnMessage((param) => {
           connection.on("message", (data) => {
             resolve(data.utf8Data);
           });
-          _webSocketServer.send(message);
+          _webSocketServer.send(param.message);
         });
       });
     }
@@ -74,8 +81,8 @@ describe("WebSocketServer", () => {
 
   describe("addOnRequest", () => {
     it("", () => {
-      const ls = _webSocketServer._.state.eventHandlers.request;
-      const handler = (id: number) => {};
+      const ls = _state.eventHandlers.request;
+      const handler = (param: IOnRequest) => {};
       expect(ls).not.toContain(handler);
       _webSocketServer.addOnRequest(handler);
       expect(ls).toContain(handler);
@@ -84,8 +91,8 @@ describe("WebSocketServer", () => {
 
   describe("addOnMessage", () => {
     it("", () => {
-      const ls = _webSocketServer._.state.eventHandlers.message;
-      const handler = (id: number, message: string) => {};
+      const ls = _state.eventHandlers.message;
+      const handler = (param: IOnMessage) => {};
       expect(ls).not.toContain(handler);
       _webSocketServer.addOnMessage(handler);
       expect(ls).toContain(handler);
@@ -94,8 +101,8 @@ describe("WebSocketServer", () => {
 
   describe("addOnClose", () => {
     it("", () => {
-      const ls = _webSocketServer._.state.eventHandlers.close;
-      const handler = (id: number) => {};
+      const ls = _state.eventHandlers.close;
+      const handler = (param: IOnClose) => {};
       expect(ls).not.toContain(handler);
       _webSocketServer.addOnClose(handler);
       expect(ls).toContain(handler);
@@ -103,28 +110,28 @@ describe("WebSocketServer", () => {
   });
 
   describe("removeOn", () => {
-    let messageEventHandlers: any[];
+    let messageEventHandlers: OnMessageType[];
 
     beforeEach(() => {
       messageEventHandlers = [];
       for (let i = 0, len = 10; i < len; i++) {
-        const handler = (id: number, message: string) => {};
+        const handler = (param: IOnMessage) => {};
         _webSocketServer.addOnMessage(handler);
         messageEventHandlers.push(handler);
       }
     });
 
     it("", () => {
-      const ls = _webSocketServer._.state.eventHandlers.message;
+      const ls = _state.eventHandlers.message;
       expect(ls).toEqual(messageEventHandlers);
 
-      const dummyHandler = (id: number, message: string) => {};
-      _webSocketServer.removeOn("message", dummyHandler);
+      const dummyHandler = (param: IOnMessage) => {};
+      _webSocketServer.removeOnMessage(dummyHandler);
       expect(ls).toEqual(messageEventHandlers);
 
       messageEventHandlers
         .reverse()
-        .forEach((h) => _webSocketServer.removeOn("message", h));
+        .forEach((h) => _webSocketServer.removeOnMessage(h));
       expect(ls).not.toEqual(messageEventHandlers);
       expect(ls).toEqual([]);
     });
