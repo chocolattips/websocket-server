@@ -1,11 +1,11 @@
 {
-  "name": "web-socket-server",
+  "name": "websocket-server",
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
     "build": "webpack --config webpack.config.js",
-    "package": "npm run build && npm pack && tar -xvf web-socket-server*.tgz",
+    "package": "npm run build && npm pack && tar -xvf websocket-server-1.0.0.tgz",
     "test": "jest"
   },
   "keywords": [],
