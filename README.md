@@ -12,7 +12,6 @@ npm install
 ### import
 
 ```ts
-import Http from "http";
 import useWebSocketServer from "websocket-server";
 ```
 
@@ -44,6 +43,10 @@ const ws = useWebSocketServer(port);
 ```
 
 #### httpServer
+
+```ts
+import Http from "http";
+```
 
 ```ts
 const port = 3000;
